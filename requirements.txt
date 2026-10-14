@@ -1,0 +1,4 @@
+# The same two District Lookup needs, since the build runs its code: small
+# pure wheels, nothing to compile.
+shapely>=2.1
+requests>=2.34

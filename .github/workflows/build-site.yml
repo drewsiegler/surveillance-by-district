@@ -1,0 +1,74 @@
+# Builds the website every morning and publishes it on GitHub Pages.
+#
+# Each run clones the latest District Lookup, so its maps and officeholders are
+# always current here; runs the tests; asks OpenStreetMap for every license
+# plate reader in the county; commits data/alpr_cameras.json when cameras were
+# added, moved or removed, so the repo's history is a day-by-day record of
+# what's been mapped; and publishes site/. If OpenStreetMap can't be reached,
+# the site is built from the last saved copy and says how old it is.
+#
+# One-time setup: Settings → Pages → Build and deployment → Source: GitHub Actions.
+name: Build the site
+
+on:
+  schedule:
+    - cron: "17 13 * * *"  # every day at 6:17 a.m. Pacific (5:17 in winter)
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write  # to commit the day's cameras
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      DISTRICT_LOOKUP: ${{ github.workspace }}/district-lookup
+    steps:
+      - uses: actions/checkout@v7
+      - name: Get the latest District Lookup
+        uses: actions/checkout@v7
+        with:
+          repository: drewsiegler/district-lookup
+          path: district-lookup
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - run: pip install -r requirements-dev.txt
+      - name: Run the tests
+        run: python -m pytest
+      - name: Build the site
+        run: python src/build.py
+      - name: Save the day's cameras
+        run: |
+          # Every answer carries a new timestamp, so commit only when a camera line changed.
+          if git diff -U0 -- data/alpr_cameras.json | grep -q '^[-+] {"id"'; then
+            day=$(python -c 'import json; print(json.load(open("data/alpr_cameras.json"))["as_of"][:10])')
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add data/alpr_cameras.json
+            git commit -m "Update the camera map to $day"
+            git push
+          fi
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Surveillance by District</title>
+<meta name="description" content="License plate reader cameras mapped in Santa Clara County, counted by city, council district, supervisor, legislative and school district. Updated daily.">
+<meta property="og:title" content="Surveillance by District">
+<meta property="og:description" content="How many license plate reader cameras are in your district? Every mapped camera in Santa Clara County, counted by the districts that represent you. Updated daily.">
+<meta property="og:type" content="website">
+<style>
+  :root {
+    --ink: #1c2b2a; --muted: #5d6d6a; --line: #dfe3e3; --bg: #f4f6f6; --surface: #fff;
+    --accent: #1f6f68; --accent-soft: #e3f2ef; --warn: #a5461f; --warn-soft: #fbeeea;
+    --zero: #eef1f1; --ramp-lo: #cfe9e4; --ramp-hi: #0d4a45; --dot: #c2410c; --hl: #1c2b2a;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #e4ecea; --muted: #9aaba8; --line: #2b3836; --bg: #101716; --surface: #172120;
+      --accent: #6cc6bb; --accent-soft: #1b3330; --warn: #eb9068; --warn-soft: #3a2620;
+      --zero: #222e2c; --ramp-lo: #1f4440; --ramp-hi: #9fe6db; --dot: #ff8a4c; --hl: #fff;
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.55 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  main { max-width: 1080px; margin: 0 auto; padding: 36px 16px 56px; }
+  a { color: var(--accent); }
+  .eyebrow { margin: 0 0 6px; font-size: 12px; font-weight: 700; letter-spacing: .09em;
+             text-transform: uppercase; color: var(--accent); }
+  h1 { font-size: clamp(28px, 5vw, 40px); line-height: 1.1; margin: 0 0 10px; letter-spacing: -0.02em; }
+  .lede { max-width: 640px; margin: 0 0 24px; color: var(--muted); font-size: 16px; }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+  .stat { background: var(--accent-soft); color: var(--accent); border-radius: 10px; padding: 14px 16px;
+          font-size: 13px; }
+  .stat.flock { background: var(--warn-soft); color: var(--warn); }
+  .stat.when { background: var(--surface); color: var(--muted); border: 1px solid var(--line); }
+  .stat .n { display: block; font-size: 28px; font-weight: 700; line-height: 1.15;
+             font-variant-numeric: tabular-nums; }
+  .stat.when .n { font-size: 20px; color: var(--ink); padding: 4px 0 3px; }
+  @media (max-width: 560px) { .stats { grid-template-columns: 1fr 1fr; } .stat.when { grid-column: span 2; } }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px; }
+  .controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  .controls label { font-size: 13px; color: var(--muted); }
+  select { font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line);
+           border-radius: 8px; padding: 7px 10px; flex: 1; min-width: 0; max-width: 460px; }
+  .toggle { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; margin-left: auto; }
+  @media (max-width: 560px) { select { flex-basis: 100%; max-width: none; } .toggle { margin-left: 0; } }
+  .split { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+  @media (max-width: 820px) { .split { grid-template-columns: 1fr; } }
+  figure { margin: 0; }
+  #map { width: 100%; height: auto; display: block; }
+  #map .county { fill: var(--zero); }
+  #map .layer { display: none; }  /* SVG ignores the hidden attribute */
+  #map .layer.on { display: inline; }
+  #map .district { stroke: var(--surface); stroke-width: 1.2; stroke-linejoin: round; cursor: pointer; }
+  #map .district.hl { stroke: var(--hl); stroke-width: 2.5; }
+  #map .county-line { fill: none; stroke: var(--muted); stroke-width: 1; pointer-events: none; }
+  #map .cams circle { fill: var(--dot); stroke: var(--surface); stroke-width: .7; pointer-events: none; }
+  #map.no-dots .cams { display: none; }
+  figcaption { min-height: 44px; margin-top: 8px; font-size: 13px; color: var(--muted); }
+  figcaption b { color: var(--ink); }
+  .legend { display: flex; align-items: center; gap: 6px 16px; font-size: 12px; color: var(--muted); flex-wrap: wrap; }
+  .legend .key { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+  .legend .ramp { width: 110px; height: 8px; border-radius: 4px;
+                  background: linear-gradient(90deg, var(--ramp-lo), var(--ramp-hi)); }
+  .legend .zero { width: 14px; height: 8px; border-radius: 2px; background: var(--zero); border: 1px solid var(--line); }
+  .legend .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dot); }
+  .tablebox { max-height: 560px; overflow: auto; border: 1px solid var(--line); border-radius: 10px; }
+  @media (max-width: 820px) { .tablebox { max-height: 440px; } }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { position: sticky; top: 0; background: var(--bg); text-align: left; font-weight: 600; color: var(--muted);
+       padding: 8px 10px; border-bottom: 1px solid var(--line); cursor: pointer; user-select: none;
+       white-space: nowrap; }
+  th.num, td.num { text-align: right; }
+  th[aria-sort]::after { content: " ↓"; }
+  td { padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  td.within { color: var(--muted); }
+  tbody tr { cursor: default; }
+  tbody tr.hl td { background: var(--accent-soft); }
+  tr.elsewhere td { color: var(--muted); font-style: italic; }
+  .bar { display: inline-block; vertical-align: middle; height: 6px; border-radius: 3px;
+         background: var(--accent); margin-left: 8px; }
+  .w { display: none; }
+  @media (max-width: 560px) {
+    .bar, .within { display: none; }
+    .w { display: block; font-size: 11px; color: var(--muted); }
+    th, td { padding: 7px 8px; }
+  }
+  .downloads { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+  .button { display: inline-block; text-decoration: none; font-weight: 700; font-size: 14px; padding: 9px 16px;
+            border-radius: 8px; background: var(--accent); color: var(--surface); }
+  .button.ghost { background: transparent; color: var(--accent); border: 1px solid var(--line); }
+  .about { margin-top: 28px; max-width: 760px; }
+  .about h2 { font-size: 18px; margin: 0 0 10px; }
+  .about li { margin-bottom: 10px; color: var(--muted); }
+  .about li b { color: var(--ink); }
+  footer { margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+  footer a { color: var(--muted); }
+  noscript p { color: var(--warn); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <p class="eyebrow">Santa Clara County, California</p>
+    <h1>Surveillance by District</h1>
+    <p class="lede">Every automated license plate reader that volunteers have mapped in the county, counted by the districts that represent the people who drive past it, from city council to school board.</p>
+  </header>
+
+  <section class="stats" aria-label="Totals">
+    <div class="stat"><span class="n" id="total">–</span>cameras mapped</div>
+    <div class="stat flock"><span class="n" id="flock">–</span>made by Flock Safety</div>
+    <div class="stat when"><span class="n" id="asof">–</span>camera map as of</div>
+  </section>
+
+  <section class="card" aria-label="Cameras by district">
+    <div class="controls">
+      <label for="pick">Districts</label>
+      <select id="pick"></select>
+      <label class="toggle"><input type="checkbox" id="dots" checked> Show cameras</label>
+    </div>
+    <div class="split">
+      <figure>
+        __MAP_SVG__
+        <figcaption id="caption" aria-live="polite">Point at a district to see its count.</figcaption>
+        <div class="legend">
+          <span class="key"><span class="zero"></span>none <span class="ramp"></span><span id="legend-max"></span></span>
+          <span class="key"><span class="dot"></span>one camera</span>
+        </div>
+      </figure>
+      <div class="tablebox"><table id="table"></table></div>
+    </div>
+    <noscript><p>The map and table need JavaScript. The downloads below have every number.</p></noscript>
+    <div class="downloads">
+      <a class="button" href="license_plate_readers_by_district.csv" download>Download every district (CSV)</a>
+      <a class="button ghost" href="license_plate_readers_by_district.json" download>Data and camera list (JSON)</a>
+    </div>
+  </section>
+
+  <section class="about">
+    <h2>About these numbers</h2>
+    <ul>
+      <li><b>Each count is a floor.</b> The cameras come from <a href="https://deflock.me">DeFlock</a> and other OpenStreetMap volunteers. A camera counts only once someone has found it and mapped it, so a neighborhood nobody has walked looks less watched than it is. Know of one that's missing? Add it on DeFlock, and it shows up here the next day.</li>
+      <li><b>What they do.</b> Automated license plate readers photograph every passing car and log its plate, where it was and when, whether or not anyone in it is suspected of anything.</li>
+      <li><b>Comparing districts.</b> Districts on the same electoral map (council, supervisor, Congress, state legislature, trustee areas) each hold about the same number of residents, so their counts compare fairly. Cities and school districts vary widely in size.</li>
+      <li><b>Council districts and trustee areas</b> count only cameras inside the city or school district that drew them. <i>Elsewhere in the county</i> collects cameras outside every area on a map; on the city map, that's unincorporated land.</li>
+      <li><b>The districts</b>, and the officeholders named with them, come from <a id="dl-link" href="https://github.com/drewsiegler/district-lookup">District Lookup</a>, a free tool that finds every district an address is in. <span id="dl-version"></span></li>
+      <li><b>Updated every day</b> from OpenStreetMap. The CSV has every number on this page; the JSON adds the location, maker and operator of each camera.</li>
+    </ul>
+  </section>
+
+  <footer>
+    Camera locations © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>, available under the Open Database License.
+    · <a href="https://github.com/drewsiegler/surveillance-by-district">Free and open source</a>
+    · Made by Drew Siegler · <a href="https://ko-fi.com/andrewsiegler">Support this project</a>
+  </footer>
+</main>
+
+<script type="application/json" id="data">__PAGE_DATA__</script>
+<script>
+const data = JSON.parse(document.getElementById("data").textContent);
+const $ = id => document.getElementById(id);
+const svg = $("map");
+let current = null, sortBy = "cameras";
+
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g, c =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function day(iso) {
+  return iso ? new Date(iso).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" }) : "unknown";
+}
+function hex(name) {
+  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim().replace("#", "");
+  return [0, 2, 4].map(i => parseInt(v.slice(i, i + 2), 16));
+}
+function shade(n, most) {
+  if (!n) return "var(--zero)";
+  const lo = hex("--ramp-lo"), hi = hex("--ramp-hi"), t = Math.sqrt(n / most);
+  return `rgb(${lo.map((c, i) => Math.round(c + (hi[i] - c) * t)).join(",")})`;
+}
+function name(row) { return (row.within ? row.within + " · " : "") + row.district; }
+function describe(row) {
+  const extra = [row.other_makers && `Other makers: ${row.other_makers}`,
+                 row.operators && `Operators named: ${row.operators}`].filter(Boolean).join(". ");
+  return `<b>${esc(name(row))}</b>: ${row.cameras.toLocaleString()} camera${row.cameras === 1 ? "" : "s"}` +
+    (row.cameras ? `, ${row.flock.toLocaleString()} Flock` : "") + (extra ? `<br>${esc(extra)}` : "");
+}
+
+$("total").textContent = data.total.toLocaleString();
+$("flock").textContent = data.flock.toLocaleString();
+$("asof").textContent = day(data.as_of);
+const dl = data.district_lookup;
+$("dl-link").href = dl.url;
+$("dl-version").textContent = `These maps are from District Lookup ${dl.version}` + (dl.commit ? ` (${dl.commit})` : "") + ".";
+$("pick").innerHTML = data.maps.map(m => `<option value="${esc(m.id)}">${esc(m.label)}</option>`).join("");
+
+function show(id) {
+  current = data.maps.find(m => m.id === id) || data.maps[0];
+  $("pick").value = current.id;
+  svg.querySelectorAll(".layer").forEach(g => g.classList.toggle("on", g.dataset.map === current.id));
+  const most = Math.max(1, ...current.rows.filter(r => !r.elsewhere).map(r => r.cameras));
+  svg.querySelectorAll(`.layer[data-map="${current.id}"] .district`).forEach(p => {
+    const row = current.rows[p.dataset.i];
+    p.style.fill = shade(row.cameras, most);
+  });
+  $("legend-max").textContent = `${most.toLocaleString()} cameras`;
+  $("caption").textContent = "Point at a district to see its count.";
+  table();
+}
+
+function table() {
+  const order = current.rows.map((r, i) => i);
+  if (sortBy === "cameras") order.sort((a, b) =>
+    current.rows[a].elsewhere - current.rows[b].elsewhere || current.rows[b].cameras - current.rows[a].cameras);
+  const most = Math.max(1, ...current.rows.map(r => r.cameras));
+  const sorted = col => sortBy === col ? ' aria-sort="descending"' : "";
+  $("table").innerHTML = `<thead><tr>${current.scoped ? `<th class="within" data-sort="name"${sorted("name")}>Within</th>` : ""}` +
+    `<th data-sort="name"${sorted("name")}>District</th>` +
+    `<th class="num" data-sort="cameras"${sorted("cameras")}>Cameras</th><th class="num" data-sort="cameras">Flock</th></tr></thead><tbody>` +
+    order.map(i => {
+      const r = current.rows[i];
+      return `<tr data-i="${i}"${r.elsewhere ? ' class="elsewhere"' : ""}>` +
+        (current.scoped ? `<td class="within">${esc(r.within)}</td>` : "") +
+        `<td>${r.within ? `<span class="w">${esc(r.within)}</span>` : ""}${esc(r.district)}</td>` +
+        `<td class="num">${r.cameras.toLocaleString()}<span class="bar" style="width:${Math.round(56 * r.cameras / most)}px"></span></td>` +
+        `<td class="num">${r.flock.toLocaleString()}</td></tr>`;
+    }).join("") + "</tbody>";
+}
+
+function highlight(i, from) {
+  svg.querySelectorAll(".district.hl").forEach(p => p.classList.remove("hl"));
+  $("table").querySelectorAll("tr.hl").forEach(tr => tr.classList.remove("hl"));
+  if (i == null) return;
+  const path = svg.querySelector(`.layer[data-map="${current.id}"] .district[data-i="${i}"]`);
+  const tr = $("table").querySelector(`tbody tr[data-i="${i}"]`);
+  if (path) { path.classList.add("hl"); path.parentNode.appendChild(path); }  // drawn on top
+  if (tr) {
+    tr.classList.add("hl");
+    if (from === "map") tr.scrollIntoView({ block: "nearest" });
+  }
+  $("caption").innerHTML = describe(current.rows[i]);
+}
+
+svg.addEventListener("mouseover", e => {
+  if (e.target.classList.contains("district")) highlight(e.target.dataset.i, "map");
+});
+svg.addEventListener("click", e => {
+  if (e.target.classList.contains("district")) highlight(e.target.dataset.i, "map");
+});
+$("table").addEventListener("mouseover", e => {
+  const tr = e.target.closest("tbody tr");
+  if (tr) highlight(tr.dataset.i, "table");
+});
+$("table").addEventListener("click", e => {
+  const th = e.target.closest("th");
+  if (th) { sortBy = th.dataset.sort; table(); }
+});
+$("pick").onchange = () => { history.replaceState(null, "", "#" + $("pick").value); show($("pick").value); };
+$("dots").onchange = () => svg.classList.toggle("no-dots", !$("dots").checked);
+window.addEventListener("hashchange", () => show(location.hash.slice(1)));
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => show(current.id));
+show(location.hash.slice(1));
+</script>
+</body>
+</html>

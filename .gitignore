@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+.pytest_cache/
+
+# Built by src/build.py and published by the daily workflow, never committed.
+/site/
+
+# A District Lookup checkout, if you keep one inside this folder rather than beside it.
+/district-lookup/
