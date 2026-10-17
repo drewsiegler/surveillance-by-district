@@ -1,5 +1,5 @@
 {
- "as_of": "2026-10-15T17:45:20Z",
+ "as_of": "2026-10-17T16:22:21Z",
  "bbox": [36.892, -122.203, 37.485, -121.208],
  "source": "OpenStreetMap, via the Overpass API",
  "license": "ODbL-1.0",
@@ -1444,6 +1444,22 @@
  {"id": 14269680001, "lat": 37.365881, "lon": -122.1159717, "manufacturer": "Flock Safety"},
  {"id": 14270743701, "lat": 37.2517292, "lon": -121.9046788, "manufacturer": "Flock Safety"},
  {"id": 14270893301, "lat": 37.2367646, "lon": -121.9010194, "manufacturer": "Flock Safety"},
- {"id": 14284814001, "lat": 37.129667, "lon": -121.65371, "manufacturer": "Flock Safety"}
+ {"id": 14284814001, "lat": 37.129667, "lon": -121.65371, "manufacturer": "Flock Safety"},
+ {"id": 14288995602, "lat": 37.4101599, "lon": -121.8878545, "manufacturer": "Flock Safety"},
+ {"id": 14288995603, "lat": 37.4101883, "lon": -121.8877571, "manufacturer": "Flock Safety"},
+ {"id": 14290549001, "lat": 37.4082527, "lon": -121.889482, "manufacturer": "Flock Safety"},
+ {"id": 14290550201, "lat": 37.408578, "lon": -121.8894046, "manufacturer": "Flock Safety"},
+ {"id": 14290812001, "lat": 37.395519, "lon": -121.8885069, "manufacturer": "Flock Safety"},
+ {"id": 14290815601, "lat": 37.3944635, "lon": -121.8888346, "manufacturer": "Flock Safety"},
+ {"id": 14290817201, "lat": 37.394436, "lon": -121.8893797, "manufacturer": "Flock Safety"},
+ {"id": 14290848701, "lat": 37.4036481, "lon": -121.8924157, "manufacturer": "Flock Safety"},
+ {"id": 14290848901, "lat": 37.4038014, "lon": -121.8945147, "manufacturer": "Flock Safety"},
+ {"id": 14290875301, "lat": 37.4039058, "lon": -121.8957242, "manufacturer": "Flock Safety"},
+ {"id": 14291372501, "lat": 37.3685898, "lon": -121.9106465, "manufacturer": "Flock Safety"},
+ {"id": 14291387502, "lat": 37.3698958, "lon": -121.9128263, "manufacturer": "Flock Safety"},
+ {"id": 14291416101, "lat": 37.3698986, "lon": -121.9128801, "manufacturer": "Flock Safety"},
+ {"id": 14291530202, "lat": 37.3702646, "lon": -121.9141296, "manufacturer": "Flock Safety"},
+ {"id": 14291538101, "lat": 37.3695567, "lon": -121.915153, "manufacturer": "Flock Safety"},
+ {"id": 14291546701, "lat": 37.3684828, "lon": -121.9143586, "manufacturer": "Flock Safety"}
  ]
 }
