@@ -12,6 +12,7 @@ A static website, rebuilt daily, that counts license plate reader cameras from O
 - `src/cameras.py`: the Overpass query, the snapshot file, and counting by district.
 - `src/website.py`: the SVG map, the embedded data, and the three output files.
 - `src/page.html`: the page template. `__MAP_SVG__` and `__PAGE_DATA__` are filled in by the build.
+- `src/records_todo.py`: the camera converter's to-do list, the ALPR camera lists agencies sent in answer to public records requests. It reads `converter-todo.json` from a PRA Tracker checkout beside this folder (or `PRA_TRACKER`, or `--pra-tracker`) and prints what's waiting. The converter itself comes next; it keeps each response's agency and response date with every camera it makes, in `data/record_cameras.json`, which is how the list knows a response is done.
 
 ## Commands
 
@@ -33,6 +34,7 @@ Tests and the build must pass before a change counts as done.
 - A partial Overpass answer (a `remark` reporting an error) is a failed fetch, never a smaller count, and a fetch never replaces the saved cameras with an older copy of the map.
 - Every district is listed, zeros included, except neighbors' slivers along the county line (`SLIVER_SQ_MI`).
 - Credit OpenStreetMap (ODbL) wherever the camera data goes: the page footer, the CSV's last row, the JSON's `license`.
+- **PRA Tracker stays private.** Its log is a campaign plan, and this repo is public. Read its `converter-todo.json` only from the local checkout; never copy it, its file paths or its request ids into this repo, the site, a test fixture you'd mistake for real, or the build. Only what the converter makes from a response, once Drew decides to publish it, belongs here. Released records never go in this repo.
 
 ## Writing
 

@@ -26,6 +26,16 @@ The address bar remembers which map you're looking at, so a link like `…/surve
 - **Cameras:** [OpenStreetMap](https://www.openstreetmap.org), where DeFlock and other volunteers map license plate readers, read through the free [Overpass API](https://overpass-api.de). Each morning's answer is saved in `data/alpr_cameras.json`, and the repo's history records every day the map changed.
 - **Districts:** [District Lookup](https://github.com/drewsiegler/district-lookup), the free tool that finds every district an address is in. This site doesn't keep its own copy of the maps. Each build pulls District Lookup's latest maps and its matching rules, so the two always agree, and a map fixed there is fixed here the next morning. The page says which version of District Lookup it was built from.
 
+## Camera lists from records requests
+
+DeFlock's map is volunteers' work, and it's off in places. The next step is each city's own list of its cameras, asked for with public records requests. The requests are tracked in PRA Tracker, which is private, and when an agency's camera list comes in it goes on the camera converter's to-do list there. On the maintainer's computer, with pra-tracker checked out beside this folder:
+
+```bash
+python src/records_todo.py
+```
+
+lists the camera lists waiting to be turned into map points, with each agency and the date it answered. The converter, still to come, keeps those two with every camera it makes, which is how the list knows a response is done. Nothing from the list is copied into this repo or the site.
+
 ## Your visit stays private
 
 The page is one self-contained file. It loads no scripts, fonts, map tiles, ads or analytics from anywhere, and it keeps no cookies. The only server your browser talks to is GitHub Pages, which hosts it and, like any website, sees your internet address when you visit.
