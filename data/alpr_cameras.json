@@ -1,5 +1,5 @@
 {
- "as_of": "2026-10-21T12:03:29Z",
+ "as_of": "2026-10-25T17:02:06Z",
  "bbox": [36.892, -122.203, 37.485, -121.208],
  "source": "OpenStreetMap, via the Overpass API",
  "license": "ODbL-1.0",
@@ -472,7 +472,6 @@
  {"id": 12688782803, "lat": 37.1507236, "lon": -121.6806486, "manufacturer": "Flock Safety"},
  {"id": 12690276687, "lat": 37.2524543, "lon": -121.8037342, "manufacturer": "Flock Safety"},
  {"id": 12692369071, "lat": 37.3738026, "lon": -122.0968591, "manufacturer": "Flock Safety", "operator": "Los Altos Police Department"},
- {"id": 12695396829, "lat": 37.3521262, "lon": -122.0655673, "manufacturer": "Flock Safety", "operator": "Los Altos Police Department"},
  {"id": 12701389844, "lat": 37.365273, "lon": -122.1158362, "manufacturer": "Flock Safety", "operator": "Los Altos Police Department"},
  {"id": 12701479514, "lat": 37.2934209, "lon": -122.0324167, "manufacturer": "Flock Safety"},
  {"id": 12701479515, "lat": 37.2914208, "lon": -122.0320855, "manufacturer": "Flock Safety"},
@@ -1458,6 +1457,8 @@
  {"id": 14301585801, "lat": 37.4271104, "lon": -121.8810053, "manufacturer": "Flock Safety"},
  {"id": 14301586701, "lat": 37.4267961, "lon": -121.8808897, "manufacturer": "Flock Safety"},
  {"id": 14301739501, "lat": 37.446787, "lon": -121.8938768, "manufacturer": "Flock Safety"},
- {"id": 14301741302, "lat": 37.4487827, "lon": -121.8879441, "manufacturer": "Flock Safety"}
+ {"id": 14301741302, "lat": 37.4487827, "lon": -121.8879441, "manufacturer": "Flock Safety"},
+ {"id": 14311986401, "lat": 37.2512951, "lon": -121.8730161, "manufacturer": "Flock Safety"},
+ {"id": 14312003101, "lat": 37.2634238, "lon": -121.8463351, "manufacturer": "Flock Safety"}
  ]
 }
