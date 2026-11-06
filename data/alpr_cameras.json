@@ -1,5 +1,5 @@
 {
- "as_of": "2026-10-31T17:41:01Z",
+ "as_of": "2026-11-06T19:55:35Z",
  "bbox": [36.892, -122.203, 37.485, -121.208],
  "source": "OpenStreetMap, via the Overpass API",
  "license": "ODbL-1.0",
@@ -48,7 +48,6 @@
  {"id": 12357494539, "lat": 37.3334597, "lon": -121.8801069, "manufacturer": "Motorola Solutions"},
  {"id": 12357494540, "lat": 37.3322945, "lon": -121.8832133, "manufacturer": "Motorola Solutions"},
  {"id": 12357494541, "lat": 37.3315457, "lon": -121.8826752, "manufacturer": "Flock Safety"},
- {"id": 12357494549, "lat": 37.3296899, "lon": -121.8727457, "manufacturer": "Flock Safety"},
  {"id": 12357494550, "lat": 37.3412734, "lon": -121.8813743, "manufacturer": "Flock Safety"},
  {"id": 12385170350, "lat": 37.4220222, "lon": -122.1025181, "manufacturer": "Flock Safety", "operator": "Palo Alto Police Department"},
  {"id": 12388200749, "lat": 37.3041939, "lon": -121.861533, "manufacturer": "Flock Safety"},
@@ -1452,6 +1451,13 @@
  {"id": 14319811701, "lat": 37.4515321, "lon": -121.919375, "manufacturer": "Flock Safety"},
  {"id": 14319812201, "lat": 37.4503571, "lon": -121.9185741, "manufacturer": "Flock Safety"},
  {"id": 14330141801, "lat": 37.2208554, "lon": -121.8654372, "manufacturer": "Flock Safety"},
- {"id": 14335315490, "lat": 37.0398492, "lon": -121.3099941, "manufacturer": "Flock Safety"}
+ {"id": 14335315490, "lat": 37.0398492, "lon": -121.3099941, "manufacturer": "Flock Safety"},
+ {"id": 14338982175, "lat": 37.3939929, "lon": -122.1483381, "manufacturer": "Verkada Inc"},
+ {"id": 14339763101, "lat": 37.3789893, "lon": -121.9014164, "manufacturer": "Flock Safety"},
+ {"id": 14339845201, "lat": 37.3213534, "lon": -121.8764645, "manufacturer": "Flock Safety"},
+ {"id": 14339872101, "lat": 37.3213534, "lon": -121.8764645, "manufacturer": "Flock Safety"},
+ {"id": 14339872201, "lat": 37.3212891, "lon": -121.876457, "manufacturer": "Flock Safety"},
+ {"id": 14339877102, "lat": 37.3226821, "lon": -121.8677502, "manufacturer": "Flock Safety"},
+ {"id": 14341849601, "lat": 37.3890972, "lon": -122.1687741, "manufacturer": "Flock Safety"}
  ]
 }
