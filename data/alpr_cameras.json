@@ -1,5 +1,5 @@
 {
- "as_of": "2026-11-12T20:46:50Z",
+ "as_of": "2026-11-13T20:28:20Z",
  "bbox": [36.892, -122.203, 37.485, -121.208],
  "source": "OpenStreetMap, via the Overpass API",
  "license": "ODbL-1.0",
@@ -1458,6 +1458,9 @@
  {"id": 14361198101, "lat": 37.3384196, "lon": -121.8809186, "manufacturer": "Flock Safety"},
  {"id": 14362545801, "lat": 37.3781701, "lon": -121.9026013, "manufacturer": "Flock Safety"},
  {"id": 14362585401, "lat": 37.3797916, "lon": -121.9004507, "manufacturer": "Flock Safety"},
- {"id": 14366326601, "lat": 37.328827, "lon": -121.880015, "manufacturer": "Flock Safety"}
+ {"id": 14366326601, "lat": 37.328827, "lon": -121.880015, "manufacturer": "Flock Safety"},
+ {"id": 14371514101, "lat": 37.4156049, "lon": -122.0783515, "manufacturer": "Flock Safety"},
+ {"id": 14374328001, "lat": 37.3384196, "lon": -121.8809186, "manufacturer": "Flock Safety"},
+ {"id": 14374330401, "lat": 37.4440975, "lon": -122.1966329, "manufacturer": "Flock Safety"}
  ]
 }
