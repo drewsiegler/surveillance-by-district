@@ -1,5 +1,5 @@
 {
- "as_of": "2026-11-14T18:42:06Z",
+ "as_of": "2026-11-15T19:20:36Z",
  "bbox": [36.892, -122.203, 37.485, -121.208],
  "source": "OpenStreetMap, via the Overpass API",
  "license": "ODbL-1.0",
@@ -42,7 +42,7 @@
  {"id": 12344359437, "lat": 37.2757128, "lon": -122.0092914, "manufacturer": "Flock Safety", "operator": "Flock Safety"},
  {"id": 12349526522, "lat": 37.4070149, "lon": -122.1945691, "operator": "Flock Safety"},
  {"id": 12349526523, "lat": 37.4070439, "lon": -122.1945675},
- {"id": 12357494536, "lat": 37.4795946, "lon": -121.9401578, "manufacturer": "Flock Safety"},
+ {"id": 12357494536, "lat": 37.4795017, "lon": -121.9401165, "manufacturer": "Flock Safety"},
  {"id": 12357494537, "lat": 37.3324343, "lon": -121.8812092, "manufacturer": "Motorola Solutions"},
  {"id": 12357494538, "lat": 37.3329113, "lon": -121.8802318, "manufacturer": "Motorola Solutions"},
  {"id": 12357494539, "lat": 37.3334597, "lon": -121.8801069, "manufacturer": "Motorola Solutions"},
@@ -632,7 +632,6 @@
  {"id": 13003585352, "lat": 37.3313049, "lon": -121.9944771, "manufacturer": "Flock Safety", "operator": "Santa Clara Police Department"},
  {"id": 13003623645, "lat": 37.2940761, "lon": -121.9418565, "manufacturer": "Flock Safety"},
  {"id": 13003623646, "lat": 37.2940892, "lon": -121.9411383, "manufacturer": "Flock Safety"},
- {"id": 13007751069, "lat": 37.4807495, "lon": -121.9344001, "manufacturer": "Flock Safety"},
  {"id": 13007758966, "lat": 37.3973011, "lon": -122.1092857, "manufacturer": "Flock Safety", "operator": "Los Altos Police Department"},
  {"id": 13022155390, "lat": 37.320542, "lon": -121.8880883, "manufacturer": "Flock Safety"},
  {"id": 13022155393, "lat": 37.3193969, "lon": -121.8824865, "manufacturer": "Flock Safety"},
@@ -1464,6 +1463,9 @@
  {"id": 14376438113, "lat": 37.3322625, "lon": -121.8831409, "manufacturer": "Motorola Solutions"},
  {"id": 14377788402, "lat": 37.4211749, "lon": -122.1033733, "manufacturer": "Flock Safety"},
  {"id": 14378264402, "lat": 37.2812094, "lon": -121.869729, "manufacturer": "Flock Safety"},
- {"id": 14378269901, "lat": 37.2808911, "lon": -121.8695378, "manufacturer": "Flock Safety"}
+ {"id": 14378269901, "lat": 37.2808911, "lon": -121.8695378, "manufacturer": "Flock Safety"},
+ {"id": 14378942101, "lat": 37.4638828, "lon": -121.9143819, "manufacturer": "Flock Safety"},
+ {"id": 14379095201, "lat": 37.468038, "lon": -121.8904915, "manufacturer": "Flock Safety"},
+ {"id": 14381777902, "lat": 37.4603846, "lon": -121.9126234, "manufacturer": "Flock Safety"}
  ]
 }
