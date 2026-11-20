@@ -1,5 +1,5 @@
 {
- "as_of": "2026-11-19T21:27:20Z",
+ "as_of": "2026-11-20T21:03:05Z",
  "bbox": [36.892, -122.203, 37.485, -121.208],
  "source": "OpenStreetMap, via the Overpass API",
  "license": "ODbL-1.0",
@@ -1473,6 +1473,7 @@
  {"id": 14382501190, "lat": 37.3517321, "lon": -121.9230463, "operator": "San Jose Police Department"},
  {"id": 14382501193, "lat": 37.4152588, "lon": -121.8771091, "operator": "San Jose Police Department"},
  {"id": 14382501194, "lat": 37.3163219, "lon": -121.9499557, "operator": "San Jose Police Department"},
- {"id": 14383958101, "lat": 37.464102, "lon": -121.900887, "manufacturer": "Flock Safety"}
+ {"id": 14383958101, "lat": 37.464102, "lon": -121.900887, "manufacturer": "Flock Safety"},
+ {"id": 14397842001, "lat": 37.4477021, "lon": -122.1256715, "manufacturer": "Flock Safety"}
  ]
 }
