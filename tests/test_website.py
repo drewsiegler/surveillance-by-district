@@ -111,3 +111,25 @@ def test_projection_keeps_the_county_in_proportion():
 def test_script_json_cant_close_its_element():
     text = website.script_json({"x": "</script><!--"})
     assert "<" not in text and json.loads(text) == {"x": "</script><!--"}
+
+
+def test_map_has_zoom_controls_that_keep_lines_and_markers_in_proportion(built):
+    page = built["page"]
+    for button in ("zoom-in", "zoom-out", "zoom-all"):
+        assert f'id="{button}"' in page
+    assert re.search(r'<svg id="map" viewBox="0 0 1000 \d+"', page)
+    # Lines hold their width on screen and markers grow more slowly than the map.
+    assert "calc(1.2px / var(--k, 1))" in page and "scale(var(--grow, 1))" in page
+    # The color variable markers are filled with is never reused for zooming.
+    assert 'setProperty("--dot"' not in page
+
+
+def test_camera_markers_are_placed_to_a_tenth_of_a_unit(built):
+    projection = website.Projection(-122.2, 36.9, -121.2, 37.5)
+    x, y = projection.spot(-121.886224, 37.338163)
+    rounded = projection.point(-121.886224, 37.338163)
+    assert all(len(v.partition(".")[2]) == 1 for v in (x, y))  # neither lands on a whole unit
+    assert abs(float(x) - rounded[0]) <= 0.5 and abs(float(y) - rounded[1]) <= 0.5
+    assert website.short(12.0) == "12" and website.short(3.14159) == "3.1"
+    dots = re.findall(r'<circle cx="([\d.]+)" cy="([\d.]+)"', built["page"])
+    assert dots and all(len(v.partition(".")[2]) <= 1 for pair in dots for v in pair)

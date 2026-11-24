@@ -35,6 +35,19 @@ class Projection:
         return (round((lon - self.west) * self.squash * self.scale),
                 round((self.north - lat) * self.scale))
 
+    def spot(self, lon: float, lat: float) -> tuple[str, str]:
+        """A camera's x and y to a tenth of a unit (about 9 m), written short,
+        so cameras at the same corner pull apart when the map is zoomed in."""
+        x = (lon - self.west) * self.squash * self.scale
+        y = (self.north - lat) * self.scale
+        return short(x), short(y)
+
+
+def short(value: float) -> str:
+    """A number to one decimal place, without a trailing ".0"."""
+    text = f"{value:.1f}"
+    return text[:-2] if text.endswith(".0") else text
+
 
 def path_data(geometry, projection: Projection) -> str:
     """An SVG path for a polygon or multipolygon: each ring as "M x y x y … Z",
@@ -82,14 +95,14 @@ def map_svg(dl: dict, result: dict, shapes: dict) -> str:
                    if outline is not None else "")
     def dots(found, radius):
         return "".join('<circle cx="{}" cy="{}" r="{}"/>'.format(
-            *projection.point(c["lon"], c["lat"]), radius) for c in found)
+            *projection.spot(c["lon"], c["lat"]), radius) for c in found)
     def diamonds(found, half):
         """Each as an outline over a wider one in the background color, so
         it stands out against dots and shading alike."""
         shapes = []
         for c in found:
-            x, y = projection.point(c["lon"], c["lat"])
-            d = f"M{x} {y - half}l{half} {half}l-{half} {half}l-{half} -{half}z"
+            x, y = projection.spot(c["lon"], c["lat"])
+            d = f"M{x} {short(float(y) - half)}l{half} {half}l-{half} {half}l-{half} -{half}z"
             planned = "" if c["status"] == "installed" else " planned"
             shapes.append(f'<path class="halo{planned}" d="{d}"/><path class="mark{planned}" d="{d}"/>')
         return "".join(shapes)

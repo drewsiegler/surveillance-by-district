@@ -8,7 +8,7 @@ It's rebuilt every morning with the latest camera map, and it's free: no account
 
 ## What it shows
 
-- **A map of the county** shaded by how many cameras each district has, with a dot for every camera: one color for cameras from police records, another for cameras volunteers mapped, rings for spots the police list as planned, and a blue diamond around each video camera on a police list. Each kind can be switched off. Point at a district (or tap it on a phone) for its count, how many came from police records, how many video cameras police list there, how many were made by Flock Safety, the other makers, and any agency or business mapped as running them.
+- **A map of the county** shaded by how many cameras each district has, with a dot for every camera: one color for cameras from police records, another for cameras volunteers mapped, rings for spots the police list as planned, and a blue diamond around each video camera on a police list. Each kind can be switched off. Zoom in with the + button, a pinch, a double-click or Ctrl + scroll, and drag to move around; cameras at the same corner pull apart as you zoom. Point at a district (or tap it on a phone) for its count, how many came from police records, how many video cameras police list there, how many were made by Flock Safety, the other makers, and any agency or business mapped as running them.
 - **A ranked table** for whichever map you pick, with the officeholder named next to each district where District Lookup has one, like `3—Cm. Anthony Tordillos`. The Records and Video columns show a dash where no police list covers the district yet.
 - **Downloads**: every district on every map as one CSV for a spreadsheet, and a JSON file that adds the location, maker and operator of each camera.
 
