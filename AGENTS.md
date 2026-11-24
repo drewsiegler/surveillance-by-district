@@ -4,15 +4,16 @@ Guidance for AI coding agents working in this repo. [README.md](README.md) is th
 
 ## What this is
 
-A static website, rebuilt daily, that counts license plate reader cameras from OpenStreetMap by district. It's built off [District Lookup](https://github.com/drewsiegler/district-lookup): the build imports District Lookup's own `layers.py` and `lookup.py` from a checkout (`src/district_lookup.py`) and uses its maps in `data/districts/`. Never copy District Lookup's code or maps into this repo; if something it does needs changing, the change belongs there.
+A static website, rebuilt daily, that counts license plate reader cameras by district: those volunteers mapped on OpenStreetMap, and those in police departments' own lists, sent in answer to public records requests. It's built off [District Lookup](https://github.com/drewsiegler/district-lookup): the build imports District Lookup's own `layers.py` and `lookup.py` from a checkout (`src/district_lookup.py`) and uses its maps in `data/districts/`. Never copy District Lookup's code or maps into this repo; if something it does needs changing, the change belongs there.
 
 `src/` is flat modules, like District Lookup's. District Lookup's `src/` is appended to `sys.path` at build time, so never give a module here one of its names (`layers`, `lookup`, `about`, `app_paths`, `web`, `main`, `pipeline`, `geocode`, `input_table`, `launcher`) or a standard library name (the page writer is `website.py` because `site` is taken).
 
 - `src/build.py`: the entry point. Fetches cameras, saves them, builds `site/`.
-- `src/cameras.py`: the Overpass query, the snapshot file, and counting by district.
+- `src/cameras.py`: the Overpass query, the snapshot file, matching police records to mapped cameras (`same_cameras`, `SAME_CAMERA_METERS`), and counting by district.
 - `src/website.py`: the SVG map, the embedded data, and the three output files.
 - `src/page.html`: the page template. `__MAP_SVG__` and `__PAGE_DATA__` are filled in by the build.
-- `src/records_todo.py`: the camera converter's to-do list, the ALPR camera lists agencies sent in answer to public records requests. It reads `converter-todo.json` from a PRA Tracker checkout beside this folder (or `PRA_TRACKER`, or `--pra-tracker`) and prints what's waiting. The converter itself comes next; it keeps each response's agency and response date with every camera it makes, in `data/record_cameras.json`, which is how the list knows a response is done.
+- `src/records_todo.py`: the camera converter's to-do list, the ALPR camera lists agencies sent in answer to public records requests. It reads `converter-todo.json` from a PRA Tracker checkout beside this folder (or `PRA_TRACKER`, or `--pra-tracker`) and prints what's waiting.
+- `src/record_cameras.py`: the camera converter. It reads an agency's list (so far, Flock Safety's installation list, which has coordinates) from wherever it was saved and writes `data/record_cameras.json`, keeping the agency and response date with every camera, which is how the to-do list knows a response is done.
 
 ## Commands
 
@@ -31,6 +32,9 @@ Tests and the build must pass before a change counts as done.
 - **Text from OpenStreetMap is untrusted.** Operator and maker names go into the page only through `website.script_json` (which writes every `<` as `<`) and the script's `esc()`.
 - **The runtime stays at `shapely` + `requests`**, the same as District Lookup's. Ask before adding any dependency.
 - `data/alpr_cameras.json` is written by the build, one camera per line in OpenStreetMap id order, so each day's commit shows just the cameras that changed. Never hand-edit it.
+- `data/record_cameras.json` is written by `src/record_cameras.py`, one camera per line. Never hand-edit it; convert the agency's list again. The build reads it but never writes it.
+- **Each camera counts once.** A mapped camera within `SAME_CAMERA_METERS` of a listed one is the same camera, each claiming at most one. Mapped cameras in a city whose police sent a list, but not on it, still count and are marked `not_in_records`.
+- Only installed license plate readers count toward the camera totals. Planned spots are drawn as rings. Video cameras on police lists are drawn as diamonds and counted on their own (`video` on each row and in the result), never in the plate-reader totals or Flock counts.
 - A partial Overpass answer (a `remark` reporting an error) is a failed fetch, never a smaller count, and a fetch never replaces the saved cameras with an older copy of the map.
 - Every district is listed, zeros included, except neighbors' slivers along the county line (`SLIVER_SQ_MI`).
 - Credit OpenStreetMap (ODbL) wherever the camera data goes: the page footer, the CSV's last row, the JSON's `license`.

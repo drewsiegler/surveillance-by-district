@@ -1,6 +1,6 @@
 # Surveillance by District
 
-How many license plate reader cameras are in your district? This website counts every automated license plate reader (ALPR) that volunteers have mapped in Santa Clara County, by the districts that represent the people who drive past it: cities, city council districts, county supervisors, Congress, the state legislature, school and college districts and their trustee areas, the County Board of Education, open space and Valley Water districts.
+How many license plate reader cameras are in your district? This website counts every automated license plate reader (ALPR) in Santa Clara County that volunteers have mapped or police have listed in answer to a public records request, by the districts that represent the people who drive past it: cities, city council districts, county supervisors, Congress, the state legislature, school and college districts and their trustee areas, the County Board of Education, open space and Valley Water districts.
 
 **[Open the site →](https://drewsiegler.github.io/surveillance-by-district/)**
 
@@ -8,33 +8,46 @@ It's rebuilt every morning with the latest camera map, and it's free: no account
 
 ## What it shows
 
-- **A map of the county** shaded by how many cameras each district has, with a dot for every camera. Point at a district (or tap it on a phone) for its count, how many were made by Flock Safety, the other makers, and any agency or business mapped as running them.
-- **A ranked table** for whichever map you pick, with the officeholder named next to each district where District Lookup has one, like `3—Cm. Anthony Tordillos`.
+- **A map of the county** shaded by how many cameras each district has, with a dot for every camera: one color for cameras from police records, another for cameras volunteers mapped, rings for spots the police list as planned, and a blue diamond around each video camera on a police list. Each kind can be switched off. Point at a district (or tap it on a phone) for its count, how many came from police records, how many video cameras police list there, how many were made by Flock Safety, the other makers, and any agency or business mapped as running them.
+- **A ranked table** for whichever map you pick, with the officeholder named next to each district where District Lookup has one, like `3—Cm. Anthony Tordillos`. The Records and Video columns show a dash where no police list covers the district yet.
 - **Downloads**: every district on every map as one CSV for a spreadsheet, and a JSON file that adds the location, maker and operator of each camera.
 
 The address bar remembers which map you're looking at, so a link like `…/surveillance-by-district/#council_district` opens straight to council districts.
 
 ## Reading the numbers
 
-- **Each count is a floor, not a census.** A camera counts only once someone has found it and mapped it, so a neighborhood nobody has walked looks less watched than it is. Know of one that's missing? Add it on [DeFlock](https://deflock.me); it shows up here the next day.
+- **Each count is a floor, not a census.** A volunteer-mapped camera counts only once someone has found it and mapped it, so a neighborhood nobody has walked looks less watched than it is. Know of one that's missing? Add it on [DeFlock](https://deflock.me); it shows up here the next day. A police list covers only that department's own cameras.
+- **Each camera counts once.** A camera volunteers mapped within 50 meters of one on a police list is taken to be the same camera. In San José's list, half of them sit within a meter of a mapped camera; going out to 100 meters would add only 7 more matches, all near cameras the list shows were moved.
+- **Mapped but not on the police list.** Volunteers' cameras in a city whose police sent their list, but that aren't on it, still count, and the CSV and the map's captions say how many there are. They may belong to a business, a neighborhood association or another agency, or be the old spot of a camera that has since moved. In San José, as of November 2026, that's 177 cameras, which could be worth a follow-up request.
 - **Districts on the same electoral map** (council, supervisor, Congress, legislature, trustee areas) each hold about the same number of residents, so their counts compare fairly. Cities and school districts vary widely in size.
 - **Council districts and trustee areas** count only cameras inside the city or school district that drew them, the same rule District Lookup uses for addresses.
 - **Elsewhere in the county** collects cameras outside every area on a map. On the city map, that's unincorporated land.
 
 ## Where the data comes from
 
-- **Cameras:** [OpenStreetMap](https://www.openstreetmap.org), where DeFlock and other volunteers map license plate readers, read through the free [Overpass API](https://overpass-api.de). Each morning's answer is saved in `data/alpr_cameras.json`, and the repo's history records every day the map changed.
+- **Cameras volunteers mapped:** [OpenStreetMap](https://www.openstreetmap.org), where DeFlock and other volunteers map license plate readers, read through the free [Overpass API](https://overpass-api.de). Each morning's answer is saved in `data/alpr_cameras.json`, and the repo's history records every day the map changed.
+- **Cameras from police records:** police departments' own lists, sent in answer to California Public Records Act requests and saved as map points in `data/record_cameras.json`. So far: the San José Police Department's list of its Flock Safety cameras, received November 24, 2026, with 484 license plate readers installed and 18 planned spots (5 of them for cameras being moved). The list also has 15 fixed video cameras installed, and 1 more planned, most of them at the same corners as plate readers. They're marked with their own diamond on the map and counted on their own, never as license plate readers.
 - **Districts:** [District Lookup](https://github.com/drewsiegler/district-lookup), the free tool that finds every district an address is in. This site doesn't keep its own copy of the maps. Each build pulls District Lookup's latest maps and its matching rules, so the two always agree, and a map fixed there is fixed here the next morning. The page says which version of District Lookup it was built from.
 
 ## Camera lists from records requests
 
-DeFlock's map is volunteers' work, and it's off in places. The next step is each city's own list of its cameras, asked for with public records requests. The requests are tracked in PRA Tracker, which is private, and when an agency's camera list comes in it goes on the camera converter's to-do list there. On the maintainer's computer, with pra-tracker checked out beside this folder:
+DeFlock's map is volunteers' work, and it's off in places, so each city's own list of its cameras is asked for with a public records request. The requests are tracked in PRA Tracker, which is private, and when an agency's camera list comes in it goes on the camera converter's to-do list there. On the maintainer's computer, with pra-tracker checked out beside this folder:
 
 ```bash
 python src/records_todo.py
 ```
 
-lists the camera lists waiting to be turned into map points, with each agency and the date it answered. The converter, still to come, keeps those two with every camera it makes, which is how the list knows a response is done. Nothing from the list is copied into this repo or the site.
+lists the camera lists waiting to be turned into map points, with each agency and the date it answered. Nothing from the to-do list is copied into this repo or the site.
+
+The converter turns one of those lists into map points:
+
+```bash
+python src/record_cameras.py ~/Downloads/cameras.csv --agency "San José Police Department" --received 2026-11-24
+```
+
+Give the agency's name and the date its answer came in the way PRA Tracker has them: the converter keeps both with every camera, which is how the to-do list knows a response is done. Converting a newer list from the same agency replaces its cameras. The file the agency sent stays wherever it was saved and never goes in this repo; only the converted points do, in `data/record_cameras.json`.
+
+The converter reads the installation list Flock Safety keeps for each customer (the layout San José sent), which gives a latitude and longitude for every camera. It drops a camera's old spot once the list shows it installed somewhere else, and a row that repeats another camera. A list in another layout, or one that gives addresses instead of coordinates, will need a reader of its own; the converter says so rather than guess.
 
 ## Your visit stays private
 
@@ -76,4 +89,5 @@ Copyright © 2026 Drew Siegler. The code is licensed under the [GNU Affero Gener
 **The data isn't covered by that license.**
 
 - Camera locations are © OpenStreetMap contributors, available under the [Open Database License](https://opendatacommons.org/licenses/odbl/) (ODbL). If you share the counts, credit OpenStreetMap; the CSV's last row has the wording.
+- Cameras from police records come from public records the agencies released under the California Public Records Act.
 - District boundaries come from District Lookup, which gets them from Census TIGER files (public domain) and from each agency's GIS portal or public records request, with whatever terms those agencies set. [District Lookup's README](https://github.com/drewsiegler/district-lookup#license) has the details.

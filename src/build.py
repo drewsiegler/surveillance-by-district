@@ -8,6 +8,9 @@ The daily GitHub Actions run does the first. If OpenStreetMap can't be
 reached, it still builds, from the last snapshot, so a District Lookup map fix
 goes out even on a day Overpass is down; the page always shows the date its
 camera data is from.
+
+Cameras from police records, in data/record_cameras.json (made by
+src/record_cameras.py), are counted alongside the mapped ones.
 """
 
 import argparse
@@ -18,6 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import cameras
 import district_lookup
+import record_cameras
 import website
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -57,11 +61,19 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     shapes = cameras.district_shapes(dl)
-    result = cameras.report(dl, snapshot, shapes)
+    result = cameras.report(dl, snapshot, shapes, record_cameras.read())
     written = website.write_site(dl, result, shapes, Path(args.out))
-    print(f"{result['total']} cameras in the county ({result['flock']} Flock), as of "
-          f"{snapshot['as_of']}, counted across {len(result['maps'])} maps from District Lookup "
-          f"{dl['version']}.")
+    print(f"{result['total']} cameras in the county ({result['flock']} Flock), counted across "
+          f"{len(result['maps'])} maps from District Lookup {dl['version']}:")
+    print(f"  {result['volunteers']} mapped by volunteers on OpenStreetMap, as of {snapshot['as_of']}")
+    for source in result["sources"]:
+        print(f"  {source['installed']} from {source['agency']}'s records, received "
+              f"{source['response_date']} ({source['also_mapped']} of them mapped by volunteers too; "
+              f"{source['not_in_records']} mapped in {', '.join(source['cities']) or 'its city'} "
+              "that it doesn't list)")
+        if source["video"] or source["video_planned"]:
+            print(f"  {source['video']} video cameras from {source['agency']}'s records, counted on "
+                  f"their own ({source['video_planned']} more planned)")
     for path in written:
         print(f"  {path} ({path.stat().st_size / 1024:,.0f} KB)")
     return 0

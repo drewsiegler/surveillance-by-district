@@ -57,7 +57,9 @@ def path_data(geometry, projection: Projection) -> str:
 def map_svg(dl: dict, result: dict, shapes: dict) -> str:
     """The county with every map's districts as a group of paths (the page's
     CSS shows only the group marked "on", and its script shades it by count),
-    and a dot per camera.
+    and a dot per camera: one group for those volunteers mapped, one for those
+    from police records, rings for the cameras police list as planned, and
+    diamonds for the video cameras on police lists.
     Each path's data-i is the index of its row in that map's table."""
     county = cameras.covered_area(dl)
     outline = county if county is not None else None
@@ -78,16 +80,35 @@ def map_svg(dl: dict, result: dict, shapes: dict) -> str:
         groups.append(f'<g class="layer" data-map="{found["id"]}">{"".join(paths)}</g>')
     county_path = (path_data(outline.simplify(SIMPLIFY_DEGREES), projection)
                    if outline is not None else "")
-    dots = "".join(
-        '<circle cx="{}" cy="{}" r="2.6"/>'.format(*projection.point(c["lon"], c["lat"]))
-        for c in result["cameras"])
+    def dots(found, radius):
+        return "".join('<circle cx="{}" cy="{}" r="{}"/>'.format(
+            *projection.point(c["lon"], c["lat"]), radius) for c in found)
+    def diamonds(found, half):
+        """Each as an outline over a wider one in the background color, so
+        it stands out against dots and shading alike."""
+        shapes = []
+        for c in found:
+            x, y = projection.point(c["lon"], c["lat"])
+            d = f"M{x} {y - half}l{half} {half}l-{half} {half}l-{half} -{half}z"
+            planned = "" if c["status"] == "installed" else " planned"
+            shapes.append(f'<path class="halo{planned}" d="{d}"/><path class="mark{planned}" d="{d}"/>')
+        return "".join(shapes)
+    mapped = [c for c in result["cameras"] if c.get("source") != "records"]
+    listed = [c for c in result["cameras"] if c.get("source") == "records"]
+    # Volunteers' dots first, so police records' are drawn on top; planned
+    # cameras are rings, a little larger so they read as "not yet". Video
+    # cameras are hollow diamonds drawn over everything: most share a corner,
+    # often the very spot, with a plate reader, whose dot then shows inside.
     return (
         f'<svg id="map" viewBox="0 0 {WIDTH} {projection.height}" role="img" '
         f'aria-label="Map of the county shaded by how many license plate readers each district has">'
         f'<path class="county" d="{county_path}"/>'
         f'{"".join(groups)}'
         f'<path class="county-line" d="{county_path}"/>'
-        f'<g class="cams">{dots}</g></svg>'
+        f'<g class="cams mapped">{dots(mapped, 2.6)}</g>'
+        f'<g class="cams planned">{dots(result.get("planned", []), 3.2)}</g>'
+        f'<g class="cams listed">{dots(listed, 2.6)}</g>'
+        f'<g class="cams video">{diamonds(result.get("video_cameras", []), 6)}</g></svg>'
     )
 
 
@@ -105,6 +126,11 @@ def page_data(dl: dict, result: dict, built: datetime) -> dict:
         "built": built.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "total": result["total"],
         "flock": result["flock"],
+        "records": result.get("records", 0),
+        "volunteers": result.get("volunteers", result["total"]),
+        "not_in_records": result.get("not_in_records", 0),
+        "video": result.get("video", 0),
+        "sources": result.get("sources", []),
         "maps": result["maps"],
         "district_lookup": {"version": dl["version"], "commit": dl["commit"],
                             "url": dl["repo_url"]},
@@ -113,14 +139,23 @@ def page_data(dl: dict, result: dict, built: datetime) -> dict:
 
 def json_data(dl: dict, result: dict, built: datetime) -> dict:
     """The download: the tables plus every counted camera, with the license
-    OpenStreetMap's data comes under."""
-    return {
+    OpenStreetMap's data comes under, the cameras police list as planned, and
+    the video cameras on police lists."""
+    data = {
         **page_data(dl, result, built),
         "source": cameras.SOURCE,
         "license": "Camera locations © OpenStreetMap contributors, Open Database License (ODbL 1.0): "
                    "https://opendatacommons.org/licenses/odbl/",
         "cameras": result["cameras"],
     }
+    if result.get("sources"):
+        data["source"] += "; and police departments' own camera lists (source: records)"
+        data["license"] += (" — except cameras whose source is records: those come from police "
+                            "departments' answers to California Public Records Act requests, "
+                            "which are public records.")
+        data["planned"] = result.get("planned", [])
+        data["video_cameras"] = result.get("video_cameras", [])
+    return data
 
 
 def script_json(data: dict) -> str:

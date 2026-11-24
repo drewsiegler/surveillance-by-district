@@ -2,6 +2,7 @@
 Cameras are placed at public buildings from POINTS."""
 
 import csv
+import math
 import io
 
 import pytest
@@ -9,7 +10,7 @@ import requests
 from shapely import union_all
 
 import cameras
-from conftest import camera, largest_piece
+from conftest import POINTS, camera, largest_piece
 
 
 @pytest.fixture(scope="module")
@@ -247,3 +248,119 @@ def test_committed_snapshot_is_there_and_sound():
     assert ids and ids == sorted(set(ids))
     south, west, north, east = snapshot["bbox"]
     assert all(south <= c["lat"] <= north and west <= c["lon"] <= east for c in snapshot["cameras"])
+
+
+# --- Cameras from police records ------------------------------------------------------
+
+METER = 1 / cameras.METERS_PER_DEGREE  # a meter north, in degrees of latitude
+
+
+def listed(point, status="installed", north=0.0, agency="Exampleville Police Department", **extra):
+    lat, lon = POINTS[point]
+    return {"agency": agency, "response_date": "2026-11-24", "location": f"#{len(extra)} Example St",
+            "lat": lat + north * METER, "lon": lon, "device": "license plate reader",
+            "status": status, "maker": "Flock Safety", **extra}
+
+
+def test_each_listed_camera_claims_the_nearest_mapped_one_within_50_meters():
+    corner = [{"lat": 37.3 + n * METER, "lon": -121.9} for n in (0, 4)]
+    mapped = [{"lat": 37.3 + n * METER, "lon": -121.9} for n in (3, 60, 49 + 4)]
+    # The listed camera 4 m north takes the mapped one 1 m from it, so the
+    # other listed camera, 3 m from that one, has to settle for the next, 53 m off: too far.
+    assert cameras.same_cameras(corner, mapped) == {0: 1}
+    assert cameras.same_cameras(corner, mapped, meters=60) == {0: 1, 2: 0}
+    # East and west too, where a degree is shorter than it is north and south.
+    east = [{"lat": 37.3, "lon": -121.9 + 45 * METER / math.cos(math.radians(37.3))}]
+    assert cameras.same_cameras(corner[:1], east) == {0: 0}
+    assert cameras.same_cameras(corner[:1], east, meters=40) == {}
+    assert cameras.same_cameras([], mapped) == {}
+
+
+@pytest.fixture(scope="module")
+def with_records(dl, shapes, snapshot):
+    """San José has a police list here: one camera on it volunteers also
+    mapped (OpenStreetMap's camera 1, 10 m off), one they didn't, one planned,
+    and a video camera installed and another planned."""
+    records = {
+        "responses": [{"agency": "Exampleville Police Department", "response_date": "2026-11-24",
+                       "installed": 2, "planned": 1, "video": 1}],
+        "cameras": [
+            listed("san_jose_city_hall", north=10),
+            listed("san_jose_city_hall", north=400),
+            listed("san_jose_city_hall", status="planned", north=800),
+            {**listed("san_jose_city_hall"), "device": "video camera"},
+            {**listed("san_jose_city_hall", status="planned", north=900), "device": "video camera"},
+            listed("san_francisco_city_hall"),  # outside the county
+        ],
+    }
+    return cameras.report(dl, snapshot, shapes, records)
+
+
+def test_a_camera_on_the_police_list_and_on_the_map_counts_once(with_records):
+    # OpenStreetMap's 2 to 4 are still counted; its 1 is the listed camera 10 m off.
+    assert with_records["total"] == 5 and with_records["records"] == 2 and with_records["volunteers"] == 3
+    first = with_records["cameras"][0]
+    assert first["source"] == "records" and first["osm_id"] == 1 and first["operator"] == "Exampleville Police Department"
+    assert [c.get("id") for c in with_records["cameras"] if c["source"] == "osm"] == [2, 3, 4]
+    assert with_records["flock"] == 3  # both listed cameras, and Campbell's
+
+
+def test_mapped_cameras_in_the_listed_city_but_not_on_the_list_are_marked(with_records):
+    marked = [c["id"] for c in with_records["cameras"] if "not_in_records" in c]
+    assert marked == [2]  # San José's Motorola camera; Campbell's and Stanford's aren't San José's
+    san_jose = row(with_records, "city", "San Jose")
+    assert (san_jose["cameras"], san_jose["records"], san_jose["volunteers"], san_jose["not_in_records"]) == (3, 2, 1, 1)
+    source = with_records["sources"][0]
+    assert source["cities"] == ["San Jose"] and source["installed"] == 2 and source["also_mapped"] == 1
+    assert source["planned"] == 1 and source["not_in_records"] == 1 and source["video"] == 1
+
+
+def test_districts_say_whether_a_police_list_covers_them(with_records):
+    assert row(with_records, "city", "San Jose")["records_here"]
+    assert not row(with_records, "city", "Campbell")["records_here"]
+    assert row(with_records, "council_district", "3—", within="San Jose")["records_here"]
+    # No San José in Campbell's council districts or Palo Alto, so a 0 there means no list yet.
+    assert not row(with_records, "council_district", "3—", within="Campbell")["records_here"]
+    assert not row(with_records, "city", "Palo Alto")["records_here"]
+    # Every supervisor district takes in some of San José.
+    assert all(r["records_here"] for r in rows(with_records, "santa_clara_county_supervisorial")
+               if not r["elsewhere"])
+
+
+def test_planned_cameras_arent_counted(with_records):
+    assert [c["status"] for c in with_records["planned"]] == ["planned"]
+    assert all(c["status"] == "installed" for c in with_records["cameras"] if c["source"] == "records")
+
+
+def test_video_cameras_are_counted_on_their_own(with_records):
+    assert with_records["video"] == 1
+    assert not any(c.get("device") for c in with_records["cameras"])  # not license plate readers
+    assert [c["status"] for c in with_records["video_cameras"]] == ["installed", "planned"]
+    san_jose = row(with_records, "city", "San Jose")
+    assert san_jose["video"] == 1 and san_jose["cameras"] == 3  # the video camera isn't in the 3
+    assert row(with_records, "council_district", "3—", within="San Jose")["video"] == 1
+    assert row(with_records, "city", "Campbell")["video"] == 0
+    source = with_records["sources"][0]
+    assert (source["video"], source["video_planned"]) == (1, 1)
+
+
+def test_a_list_of_only_video_cameras_still_covers_its_district(dl, shapes):
+    found = cameras.report(dl, {"cameras": []}, shapes, {
+        "responses": [{"agency": "Exampleville Police Department", "response_date": "2026-11-24"}],
+        "cameras": [{**listed("campbell_city_hall"), "device": "video camera"}]})
+    campbell = row(found, "city", "Campbell")
+    assert (campbell["cameras"], campbell["video"], campbell["records_here"]) == (0, 1, True)
+    assert found["total"] == 0 and found["video"] == 1
+
+
+def test_csv_leaves_the_records_column_blank_where_no_list_covers(with_records):
+    table = list(csv.reader(io.StringIO(cameras.csv_text(with_records))))
+    header = table[0]
+    get = lambda r, name: r[header.index(cameras.CSV_COLUMNS[name])]
+    san_jose = next(r for r in table if r[0] == "City / Town (Santa Clara County)" and r[2] == "San Jose")
+    campbell = next(r for r in table if r[0] == "City / Town (Santa Clara County)" and r[2] == "Campbell")
+    assert (get(san_jose, "records"), get(san_jose, "not_in_records"), get(san_jose, "video")) == ("2", "1", "1")
+    assert (get(campbell, "records"), get(campbell, "not_in_records"), get(campbell, "video"),
+            get(campbell, "cameras")) == ("", "", "", "1")
+    assert "Exampleville Police Department's list" in table[-1][0] and "OpenStreetMap" in table[-1][0]
+    assert "Video cameras" in table[-1][0]
